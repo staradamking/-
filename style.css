@@ -235,3 +235,23 @@ body {
     padding: 8px 4px;
   }
 }
+
+/* Режим фокуса: приглушаем всё, что не выполнено */
+body.focus-mode .module-card,
+body.focus-mode section {
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+}
+
+body.focus-mode input[type="checkbox"]:checked {
+  /* выполненные остаются яркими */
+}
+
+body.focus-mode input[type="checkbox"]:checked:hover {
+  opacity: 1;
+}
+
+/* Чуть подсветим строки, где есть невыполненные задачи и курсор */
+body.focus-mode label:hover {
+  opacity: 1;
+}
