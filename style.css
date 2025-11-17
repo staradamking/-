@@ -1,14 +1,17 @@
+/* ===== БАЗА ===== */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui,
+    sans-serif;
   background: #000;
   color: #d0ffd0;
 }
@@ -21,20 +24,24 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background:
-    radial-gradient(circle at 50% -20%, #00ff66 0, #000 45%),
-    radial-gradient(circle at 10% 120%, rgba(0,255,102,0.15) 0, #000 55%);
+  background: radial-gradient(circle at 50% -20%, #00ff66 0, #000 45%);
 }
 
-/* Верх */
+/* ===== ВЕРХНЯЯ ОБЛАСТЬ (СТИКИ) ===== */
 
 .top-sticky {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.98), rgba(0,0,0,0.88));
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.95),
+    rgba(0, 0, 0, 0.85)
+  );
   backdrop-filter: blur(10px);
 }
+
+/* HEADER */
 
 .app-header {
   display: flex;
@@ -45,12 +52,14 @@ body {
 }
 
 .app-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   color: #00ff66;
   text-transform: uppercase;
 }
+
+/* Кнопка-меню (звезда) */
 
 .menu-btn {
   width: 40px;
@@ -64,7 +73,8 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease,
+    background 0.25s ease;
 }
 
 .menu-btn:active {
@@ -80,15 +90,19 @@ body {
   box-shadow: 0 0 18px rgba(0, 255, 102, 0.9);
 }
 
-/* Инфопанель */
+/* ИНФОПАНЕЛЬ */
 
 .info-panel {
-  max-height: 220px;
+  max-height: 260px;
   overflow: hidden;
   padding: 10px 16px 12px;
   border-bottom: 1px solid rgba(0, 255, 102, 0.35);
-  background: radial-gradient(circle at 0 0, rgba(0,255,102,0.14), transparent 55%);
-  transition: max-height .25s ease, padding .25s ease, border .25s ease;
+  background: radial-gradient(
+    circle at 0 0,
+    rgba(0, 255, 102, 0.14),
+    transparent 55%
+  );
+  transition: max-height 0.25s ease, padding 0.25s ease, border-bottom 0.25s ease;
 }
 
 .info-panel.collapsed {
@@ -98,85 +112,136 @@ body {
   border-bottom: none;
 }
 
-.today-status {
-  margin-bottom: 4px;
+#infoContent {
   font-size: 13px;
+  line-height: 1.4;
 }
 
-.stats-panel {
-  font-size: 12px;
-  opacity: 0.9;
-}
+/* ===== ОСНОВНОЙ СКРОЛЛ ===== */
 
-/* Направления */
-
-.tracks-container {
+.main-scroll {
   flex: 1;
-  padding: 10px 10px 80px;
+  padding: 10px 8px 80px;
 }
 
-.track-card {
-  border-radius: 16px;
+/* ===== КАРТОЧКИ СЕКЦИЙ ===== */
+
+.section-card {
+  border-radius: 18px;
   border: 1px solid rgba(0, 255, 102, 0.5);
-  margin-bottom: 12px;
-  padding: 10px 10px 12px;
-  background: radial-gradient(circle at 50% -40%, rgba(0,255,102,0.28), #000 60%);
+  margin-bottom: 14px;
+  padding: 12px 14px 14px;
+  background: radial-gradient(
+    circle at 50% -40%,
+    rgba(0, 255, 102, 0.25) 0,
+    rgba(0, 0, 0, 0.98) 60%
+  );
   box-shadow: 0 0 16px rgba(0, 255, 102, 0.22);
 }
 
-.track-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 6px;
-}
-
-.track-title {
-  font-size: 15px;
-  font-weight: 600;
+.section-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
   color: #00ff66;
 }
 
-.track-progress {
-  font-size: 12px;
-  opacity: 0.9;
-}
-
-.module-list {
-  list-style: none;
-  margin: 6px 0 0;
-  padding: 0;
-}
-
-.module-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
+.section-subtitle {
+  margin: 0 0 10px;
   font-size: 13px;
+  opacity: 0.85;
+}
+
+/* Модуль (направление) */
+
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   margin-bottom: 4px;
 }
 
-.module-item input[type="checkbox"] {
+.module-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #aaffcc;
+}
+
+.module-progress {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+}
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.task-item input[type="checkbox"] {
   margin-top: 2px;
-  accent-color: #00ff66;
 }
 
-.module-label {
+.task-label {
+  cursor: pointer;
+}
+
+/* Статистика */
+
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.stats-bar {
+  position: relative;
   flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0, 255, 102, 0.15);
+  overflow: hidden;
+  margin-left: 10px;
 }
 
-/* Нижняя панель */
+.stats-bar-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #00ff66,
+    #00ffaa,
+    #00ffea
+  );
+}
+
+/* ===== НИЖНЯЯ ПАНЕЛЬ ===== */
 
 .bottom-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 6px 6px 10px;
-  background: linear-gradient(to top, rgba(0,0,0,0.98), rgba(0,0,0,0.85));
+  padding: 6px 4px 10px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.98),
+    rgba(0, 0, 0, 0.8)
+  );
   display: flex;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
   z-index: 60;
   backdrop-filter: blur(12px);
 }
@@ -187,15 +252,16 @@ body {
   font-size: 13px;
   border-radius: 999px;
   border: 1px solid #00ff66;
-  background: radial-gradient(circle at 50% -40%, rgba(0,255,102,0.35), #000 70%);
+  background: radial-gradient(
+    circle at 50% -40%,
+    rgba(0, 255, 102, 0.35),
+    #000 70%
+  );
   color: #e4ffe4;
   cursor: pointer;
   text-align: center;
-  transition:
-    background .18s ease,
-    box-shadow .18s ease,
-    transform .12s ease,
-    border-color .18s ease;
+  transition: background 0.18s ease, box-shadow 0.18s ease,
+    transform 0.12s ease, border-color 0.18s ease;
   box-shadow: 0 0 9px rgba(0, 255, 102, 0.35);
 }
 
@@ -208,50 +274,29 @@ body {
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
 }
 
-/* Кнопка добавить в календарь (если захочешь) */
-
-.add-to-calendar {
-  margin-top: 4px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid #00ff66;
-  background: transparent;
-  color: #d6ffd6;
-  font-size: 11px;
+.nav-focus {
+  flex-basis: 26%;
 }
 
-.add-to-calendar:active {
-  transform: scale(0.94);
+/* Фокус ON */
+
+.nav-focus.on {
+  border-color: #ffdd55;
+  box-shadow: 0 0 14px rgba(255, 221, 85, 0.95);
+  background: radial-gradient(circle at 50% -40%, #ffdd55, #000 70%);
+  color: #000;
+  font-weight: 600;
 }
 
 /* Малые экраны */
 
-@media (max-width: 360px) {
+@media (max-width: 480px) {
   .app-title {
-    font-size: 16px;
+    font-size: 18px;
   }
+
   .bottom-btn {
     font-size: 12px;
     padding: 8px 4px;
   }
-}
-
-/* Режим фокуса: приглушаем всё, что не выполнено */
-body.focus-mode .module-card,
-body.focus-mode section {
-  opacity: 0.35;
-  transition: opacity 0.2s ease;
-}
-
-body.focus-mode input[type="checkbox"]:checked {
-  /* выполненные остаются яркими */
-}
-
-body.focus-mode input[type="checkbox"]:checked:hover {
-  opacity: 1;
-}
-
-/* Чуть подсветим строки, где есть невыполненные задачи и курсор */
-body.focus-mode label:hover {
-  opacity: 1;
 }
