@@ -1,101 +1,99 @@
-// StarAdam Dev HQ – логика приложения
-
-// ----- ДАННЫЕ -----
+// ===== ДАННЫЕ ОБУЧЕНИЯ =====
 
 const MODULES = [
   {
-    id: "html-css",
+    id: "htmlcss",
     title: "HTML & CSS",
-    items: [
-      { id: "html-basics", text: "Базовые теги HTML и структура страницы" },
-      { id: "html-layout", text: "Блоки, секции, шапка, футер" },
-      { id: "html-semantic", text: "Классы и id, семантика" },
-      { id: "css-flex-grid", text: "Flex и Grid для раскладки" },
-      { id: "css-colors", text: "Цвета, градиенты, тени, шрифты" },
-      { id: "css-adaptive", text: "Адаптив под телефон" }
+    tasks: [
+      "Базовые теги HTML и структура страницы",
+      "Блоки, секции, шапка, футер",
+      "Классы и id, семантика",
+      "Flex и Grid для раскладок",
+      "Цвета, градиенты, шрифты",
+      "Адаптив под телефон"
     ]
   },
   {
-    id: "js-core",
+    id: "js-base",
     title: "JavaScript База",
-    items: [
-      { id: "js-types", text: "Переменные, типы, массивы, объекты" },
-      { id: "js-functions", text: "Функции и стрелочные функции" },
-      { id: "js-loops", text: "Циклы, forEach, map" },
-      { id: "js-date", text: "Работа с датами (Date)" },
-      { id: "js-events", text: "События: click, input, change" },
-      { id: "js-dom", text: "Работа с DOM (createElement, innerHTML)" }
+    tasks: [
+      "Переменные: let, const, типы данных",
+      "Массивы и объекты",
+      "Функции и стрелочные функции",
+      "Циклы: for, while, forEach",
+      "Работа с датами (Date)",
+      "События: click, input, change"
     ]
   },
   {
     id: "js-apps",
     title: "JavaScript Приложения",
-    items: [
-      { id: "state-structure", text: "Структура приложения: state, события" },
-      { id: "local-storage", text: "localStorage: сохраняем состояние" },
-      { id: "split-code", text: "Разделение кода на функции" },
-      { id: "data-render", text: "Отрисовка списков на основе данных" },
-      { id: "error-console", text: "Обработка ошибок и консоль" },
-      { id: "clean-code", text: "Редакторский и чистый код" }
+    tasks: [
+      "Структура приложения: состояние (state)",
+      "Работа с localStorage",
+      "Разделение кода на функции",
+      "Отрисовка списков на основе данных",
+      "Обработка ошибок в консоли",
+      "Мини-проекты: todo, таймер, калькулятор"
     ]
   },
   {
     id: "git",
     title: "Git & GitHub",
-    items: [
-      { id: "repo", text: "Что такое репозиторий" },
-      { id: "git-history", text: "Коммиты и история изменений" },
-      { id: "branches", text: "Ветки и слияния (branch, merge)" },
-      { id: "github-flow", text: "GitHub: pull, fork, origin" },
-      { id: "github-pages", text: "GitHub Pages: деплой фронта" },
-      { id: "issues-pr", text: "Issues, Pull Requests и ревью" }
+    tasks: [
+      "Что такое репозиторий",
+      "Коммиты и история изменений",
+      "Ветки и слияния (branch, merge)",
+      "GitHub: push, pull, fork",
+      "GitHub Pages: деплой фронтенда",
+      "Рабочий процесс: feature-ветки"
     ]
   }
 ];
 
-const STORAGE_KEY = "staradam_devhq_progress_v1";
-const VIEW_KEY = "staradam_devhq_view_v1";
+const STORAGE_KEY = "staradam_dev_hq_v1";
 
-// ----- СОСТОЯНИЕ -----
+// ===== СОСТОЯНИЕ =====
 
 let state = {
-  view: "today",          // today | tracks | stats | focus
-  completed: new Set()    // id чекбокса -> true
+  activeView: "today", // today | paths | stats
+  completed: {}, // { taskId: true }
+  focusOn: false,
+  focusModuleId: "htmlcss"
 };
 
-// загрузка из localStorage
+// ===== УТИЛИТЫ =====
+
+function taskId(moduleId, index) {
+  return `${moduleId}-${index}`;
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed.completed)) {
-        state.completed = new Set(parsed.completed);
-      }
-    }
-  } catch (_) {}
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return;
 
-  try {
-    const v = localStorage.getItem(VIEW_KEY);
-    if (v === "today" || v === "tracks" || v === "stats" || v === "focus") {
-      state.view = v;
-    }
-  } catch (_) {}
+    state = {
+      ...state,
+      ...parsed,
+      completed: parsed.completed || {}
+    };
+  } catch (e) {
+    console.warn("Не удалось загрузить состояние:", e);
+  }
 }
 
 function saveState() {
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ completed: Array.from(state.completed) })
-    );
-    localStorage.setItem(VIEW_KEY, state.view);
-  } catch (_) {}
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn("Не удалось сохранить состояние:", e);
+  }
 }
 
-// ----- УТИЛИТЫ -----
-
-function formatDateRu(date = new Date()) {
+function formatDateRu(date) {
   return date.toLocaleDateString("ru-RU", {
     day: "numeric",
     month: "long",
@@ -103,254 +101,320 @@ function formatDateRu(date = new Date()) {
   });
 }
 
-function countProgress() {
-  const total = MODULES.reduce((sum, m) => sum + m.items.length, 0);
-  const done = MODULES.reduce(
-    (sum, m) => sum + m.items.filter(it => state.completed.has(it.id)).length,
-    0
-  );
-  return { total, done, percent: total ? Math.round((done / total) * 100) : 0 };
+// ===== РЕНДЕР =====
+
+function render() {
+  renderInfoPanel();
+  renderView();
+  updateNavButtons();
+  updateFocusButton();
 }
 
-// ближайшие невыполненные
-function getNextTasks(limit = 5) {
-  const tasks = [];
-  for (const mod of MODULES) {
-    for (const item of mod.items) {
-      if (!state.completed.has(item.id)) {
-        tasks.push({ module: mod.title, ...item });
-        if (tasks.length >= limit) return tasks;
-      }
-    }
-  }
-  return tasks;
-}
+function renderInfoPanel() {
+  const infoEl = document.getElementById("infoContent");
+  if (!infoEl) return;
 
-// ----- РЕНДЕР ВЕРХНЕЙ ПАНЕЛИ -----
+  const now = new Date();
+  const todayStr = formatDateRu(now);
 
-function renderHeaderSummary() {
-  const summaryEl = document.querySelector("[data-role='summary']");
-  if (!summaryEl) return;
+  const total = countAllTasks();
+  const done = countCompletedTasks();
+  const percent = total > 0 ? Math.round((done / total) * 100) : 0;
 
-  const { total, done, percent } = countProgress();
-  const todayStr = formatDateRu();
+  const focusModule = MODULES.find(m => m.id === state.focusModuleId);
 
-  summaryEl.innerHTML = `
-    <div class="summary-row">
-      <span>Сегодня: <strong>${todayStr}</strong></span>
-      <span class="summary-progress">
-        Прогресс: <strong>${done}</strong> из ${total} (${percent}%)
-      </span>
-    </div>
-    <div class="summary-row secondary">
-      Цель дня: закрыть хотя бы <strong>1 модуль</strong> или <strong>3 пункта</strong>.
+  infoEl.innerHTML = `
+    <div><strong>Сегодня: ${todayStr}</strong></div>
+    <div>Активный экран: <strong>${
+      state.activeView === "today"
+        ? "Сегодня"
+        : state.activeView === "paths"
+        ? "Направления"
+        : "Статистика"
+    }</strong></div>
+    <div>Прогресс: <strong>${done}</strong> из <strong>${total}</strong> задач (${percent}%).</div>
+    <div>Фокус: ${
+      state.focusOn ? `<strong>ON</strong> → ${focusModule ? focusModule.title : ""}` : "OFF"
+    }</div>
+    <div style="margin-top:4px; opacity:0.9;">
+      План: закрывать хотя бы 1–2 пункта в день, без пропусков.
     </div>
   `;
 }
 
-// ----- РЕНДЕР ЭКРАНОВ -----
+function renderView() {
+  const container = document.getElementById("viewContainer");
+  if (!container) return;
 
-const screenContainer = () => document.querySelector("[data-role='screen']");
+  if (state.activeView === "today") {
+    container.innerHTML = renderTodayView();
+  } else if (state.activeView === "paths") {
+    container.innerHTML = renderPathsView();
+  } else {
+    container.innerHTML = renderStatsView();
+  }
+}
 
 function renderTodayView() {
-  const el = screenContainer();
-  if (!el) return;
+  const tasks = getTodayTasks();
 
-  const { total, done, percent } = countProgress();
-  const nextTasks = getNextTasks(4);
+  if (tasks.length === 0) {
+    return `
+      <section class="section-card">
+        <h2 class="section-title">Задачи на сегодня</h2>
+        <p class="section-subtitle">Все задачи выполнены. Можно повторить материал или открыть новое направление в разделе «Направления».</p>
+      </section>
+    `;
+  }
 
-  el.innerHTML = `
-    <section class="card">
-      <h2>Сегодня</h2>
-      <p>Фокус: пройти 1–2 пункта из списка и закрепить материал.</p>
-      <p class="today-progress">
-        Сейчас выполнено: <strong>${done}</strong> из ${total} (${percent}%)
-      </p>
-      ${
-        nextTasks.length
-          ? `<h3>Следующие шаги:</h3>
-             <ul class="next-list">
-               ${nextTasks
-                 .map(
-                   t =>
-                     `<li><span class="next-module">${t.module}:</span> ${t.text}</li>`
-                 )
-                 .join("")}
-             </ul>`
-          : "<p>Все пункты закрыты. Можно пересматривать конспекты или двигаться к следующему уровню.</p>"
-      }
-    </section>
-    ${renderModulesHtml({ compact: true })}
-  `;
-}
+  const items = tasks
+    .map(t => {
+      const id = taskId(t.module.id, t.index);
+      const checked = !!state.completed[id];
 
-function renderTracksView() {
-  const el = screenContainer();
-  if (!el) return;
-  el.innerHTML = renderModulesHtml({ compact: false });
-}
-
-function renderStatsView() {
-  const el = screenContainer();
-  if (!el) return;
-
-  const { total, done, percent } = countProgress();
-
-  const perModule = MODULES.map(m => {
-    const mDone = m.items.filter(it => state.completed.has(it.id)).length;
-    const mTotal = m.items.length;
-    const p = mTotal ? Math.round((mDone / mTotal) * 100) : 0;
-    return { title: m.title, done: mDone, total: mTotal, percent: p };
-  });
-
-  el.innerHTML = `
-    <section class="card">
-      <h2>Статистика</h2>
-      <p>Общий прогресс: <strong>${done}</strong> из ${total} пунктов (${percent}%).</p>
-      <div class="stats-modules">
-        ${perModule
-          .map(
-            m => `
-          <div class="stats-row">
-            <div class="stats-title">${m.title}</div>
-            <div class="stats-bar">
-              <div class="stats-bar-fill" style="width:${m.percent}%"></div>
-            </div>
-            <div class="stats-label">${m.done} / ${m.total} (${m.percent}%)</div>
-          </div>`
-          )
-          .join("")}
-      </div>
-    </section>
-  `;
-}
-
-function renderFocusView() {
-  const el = screenContainer();
-  if (!el) return;
-
-  const nextTasks = getNextTasks(6);
-
-  el.innerHTML = `
-    <section class="card focus-card">
-      <h2>Фокус</h2>
-      <p>Выключи всё лишнее и сделай только эти пункты. Никаких отвлечений.</p>
-      ${
-        nextTasks.length
-          ? `<ol class="focus-list">
-               ${nextTasks
-                 .map(
-                   t =>
-                     `<li>
-                        <div class="focus-module">${t.module}</div>
-                        <div class="focus-text">${t.text}</div>
-                      </li>`
-                 )
-                 .join("")}
-             </ol>`
-          : "<p>Нет невыполненных задач. Можно повторить пройденное или расширять план.</p>"
-      }
-    </section>
-  `;
-}
-
-// генерим HTML для модулей (список с чекбоксами)
-function renderModulesHtml({ compact }) {
-  return MODULES.map(module => {
-    const inner = module.items
-      .map(item => {
-        const checked = state.completed.has(item.id) ? "checked" : "";
-        return `
-          <label class="task-item">
-            <input 
-              type="checkbox" 
-              data-task-id="${item.id}"
-              ${checked}
-            />
-            <span>${item.text}</span>
+      return `
+        <li class="task-item">
+          <input type="checkbox" id="${id}" class="task-checkbox" data-task-id="${id}" ${
+        checked ? "checked" : ""
+      } />
+          <label for="${id}" class="task-label">
+            <strong>${t.module.title}</strong>: ${t.text}
           </label>
+        </li>
+      `;
+    })
+    .join("");
+
+  return `
+    <section class="section-card">
+      <h2 class="section-title">Задачи на сегодня</h2>
+      <p class="section-subtitle">
+        ${
+          state.focusOn
+            ? "Показаны задачи только из фокусного направления."
+            : "Выбраны ближайшие невыполненные задачи из всех направлений."
+        }
+      </p>
+      <ul class="task-list">
+        ${items}
+      </ul>
+    </section>
+  `;
+}
+
+function renderPathsView() {
+  const sections = MODULES.map(module => {
+    const total = module.tasks.length;
+    const done = module.tasks.filter((_, i) =>
+      state.completed[taskId(module.id, i)]
+    ).length;
+
+    const tasksHtml = module.tasks
+      .map((text, index) => {
+        const id = taskId(module.id, index);
+        const checked = !!state.completed[id];
+
+        return `
+          <li class="task-item">
+            <input type="checkbox" id="${id}" class="task-checkbox" data-task-id="${id}" ${
+          checked ? "checked" : ""
+        } />
+            <label for="${id}" class="task-label">${text}</label>
+          </li>
         `;
       })
       .join("");
 
     return `
-      <section class="card module-card ${compact ? "compact" : ""}">
-        <div class="card-header">
-          <h2>${module.title}</h2>
+      <section class="section-card">
+        <div class="module-header">
+          <h2 class="module-title">${module.title}</h2>
+          <div class="module-progress">${done} / ${total}</div>
         </div>
-        <div class="task-list">
-          ${inner}
-        </div>
+        <ul class="task-list">
+          ${tasksHtml}
+        </ul>
       </section>
     `;
   }).join("");
+
+  return sections;
 }
 
-// ----- НАВИГАЦИЯ -----
+function renderStatsView() {
+  const totalAll = countAllTasks();
+  const doneAll = countCompletedTasks();
+  const percentAll = totalAll ? Math.round((doneAll / totalAll) * 100) : 0;
 
-function setView(view) {
-  state.view = view;
-  saveState();
-  renderAll();
+  const perModuleHtml = MODULES.map(module => {
+    const total = module.tasks.length;
+    const done = module.tasks.filter((_, i) =>
+      state.completed[taskId(module.id, i)]
+    ).length;
+    const percent = total ? Math.round((done / total) * 100) : 0;
+
+    return `
+      <div class="stats-row">
+        <span>${module.title}</span>
+        <div class="stats-bar">
+          <div class="stats-bar-fill" style="width:${percent}%;"></div>
+        </div>
+        <span style="margin-left:8px;">${percent}%</span>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <section class="section-card">
+      <h2 class="section-title">Общая статистика</h2>
+      <p class="section-subtitle">
+        Выполнено <strong>${doneAll}</strong> из <strong>${totalAll}</strong> задач (${percentAll}%).
+      </p>
+      ${perModuleHtml}
+    </section>
+  `;
 }
 
-function updateBottomNav() {
-  const buttons = document.querySelectorAll("[data-nav]");
-  buttons.forEach(btn => {
-    const v = btn.getAttribute("data-nav");
-    btn.classList.toggle("active", v === state.view);
+// ===== ЛОГИКА ЗАДАЧ =====
+
+function countAllTasks() {
+  return MODULES.reduce((sum, m) => sum + m.tasks.length, 0);
+}
+
+function countCompletedTasks() {
+  let count = 0;
+  MODULES.forEach(module => {
+    module.tasks.forEach((_, i) => {
+      if (state.completed[taskId(module.id, i)]) count++;
+    });
+  });
+  return count;
+}
+
+function getTodayTasks() {
+  const tasks = [];
+
+  if (state.focusOn) {
+    const module = MODULES.find(m => m.id === state.focusModuleId) || MODULES[0];
+    module.tasks.forEach((text, index) => {
+      const id = taskId(module.id, index);
+      if (!state.completed[id]) {
+        tasks.push({ module, index, text });
+      }
+    });
+  } else {
+    MODULES.forEach(module => {
+      module.tasks.forEach((text, index) => {
+        const id = taskId(module.id, index);
+        if (!state.completed[id]) {
+          tasks.push({ module, index, text });
+        }
+      });
+    });
+  }
+
+  // Берём первые 6 задач, чтобы не перегружать день
+  return tasks.slice(0, 6);
+}
+
+// ===== НАВИГАЦИЯ И ФОКУС =====
+
+function updateNavButtons() {
+  const btns = document.querySelectorAll(".nav-btn[data-view]");
+  btns.forEach(btn => {
+    const view = btn.getAttribute("data-view");
+    if (view === state.activeView) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
   });
 }
 
-// ----- ОБРАБОТЧИКИ -----
+function updateFocusButton() {
+  const focusBtn = document.getElementById("focusBtn");
+  if (!focusBtn) return;
 
-function onScreenClick(e) {
-  const target = e.target;
-
-  // чекбоксы
-  if (target.matches("input[type='checkbox'][data-task-id]")) {
-    const id = target.getAttribute("data-task-id");
-    if (target.checked) {
-      state.completed.add(id);
-    } else {
-      state.completed.delete(id);
-    }
-    saveState();
-    renderHeaderSummary(); // обновить прогресс сверху
+  focusBtn.textContent = state.focusOn ? "Фокус: ON" : "Фокус: OFF";
+  if (state.focusOn) {
+    focusBtn.classList.add("on");
+  } else {
+    focusBtn.classList.remove("on");
   }
 }
 
-// ----- ИНИЦИАЛИЗАЦИЯ -----
+// ===== ИНИЦИАЛИЗАЦИЯ =====
 
-function renderAll() {
-  renderHeaderSummary();
-
-  if (state.view === "today") renderTodayView();
-  else if (state.view === "tracks") renderTracksView();
-  else if (state.view === "stats") renderStatsView();
-  else if (state.view === "focus") renderFocusView();
-
-  updateBottomNav();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadState();
-
-  // обработчик для чекбоксов
-  const screenEl = screenContainer();
-  if (screenEl) {
-    screenEl.addEventListener("click", onScreenClick);
-  }
-
-  // нижняя навигация
-  document.querySelectorAll("[data-nav]").forEach(btn => {
+function setupEvents() {
+  // Нижние кнопки (вкладки)
+  document.querySelectorAll(".nav-btn[data-view]").forEach(btn => {
     btn.addEventListener("click", () => {
-      const v = btn.getAttribute("data-nav");
-      setView(v);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const view = btn.getAttribute("data-view");
+      state.activeView = view;
+      saveState();
+      render();
     });
   });
 
-  // при первом запуске
-  renderAll();
+  // Фокус
+  const focusBtn = document.getElementById("focusBtn");
+  if (focusBtn) {
+    focusBtn.addEventListener("click", () => {
+      state.focusOn = !state.focusOn;
+      // по кругу меняем фокусный модуль
+      if (state.focusOn) {
+        const currentIndex = MODULES.findIndex(
+          m => m.id === state.focusModuleId
+        );
+        const nextIndex = currentIndex === -1 ? 0 : currentIndex;
+        state.focusModuleId = MODULES[nextIndex].id;
+      }
+      saveState();
+      updateFocusButton();
+      renderInfoPanel();
+      if (state.activeView === "today") {
+        renderView();
+      }
+    });
+  }
+
+  // Тоггл инфопанели (звезда)
+  const menuToggle = document.getElementById("menuToggle");
+  const infoPanel = document.getElementById("infoPanel");
+  if (menuToggle && infoPanel) {
+    menuToggle.addEventListener("click", () => {
+      const collapsed = infoPanel.classList.toggle("collapsed");
+      if (collapsed) {
+        menuToggle.classList.remove("open");
+      } else {
+        menuToggle.classList.add("open");
+      }
+    });
+  }
+
+  // Обработка чекбоксов (делегирование)
+  const main = document.querySelector(".main-scroll");
+  if (main) {
+    main.addEventListener("change", event => {
+      const target = event.target;
+      if (target && target.classList.contains("task-checkbox")) {
+        const id = target.getAttribute("data-task-id");
+        if (!id) return;
+        state.completed[id] = target.checked;
+        saveState();
+        // после изменения – обновим инфо + статистику
+        renderInfoPanel();
+        if (state.activeView === "stats") {
+          renderView();
+        }
+      }
+    });
+  }
+}
+
+// Старт
+document.addEventListener("DOMContentLoaded", () => {
+  loadState();
+  setupEvents();
+  render();
 });
