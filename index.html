@@ -2,20 +2,41 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Staradam Dev HQ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Иконка (если есть favicon) -->
-  <!-- <link rel="icon" type="image/png" href="icon.png"> -->
-
-  <!-- Стили приложения -->
+  <title>Staradam DEV HQ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Корневой контейнер, в который всё рисует app.js -->
-  <div id="app"></div>
+  <div class="app-shell">
+    <!-- ВЕРХ: шапка + инфо -->
+    <div class="top-sticky">
+      <header class="app-header">
+        <div class="app-title">STARADAM DEV HQ</div>
+        <button class="menu-btn star-btn" id="menuToggle" aria-label="Информация">
+          ★
+        </button>
+      </header>
 
-  <!-- Логика приложения -->
+      <section class="info-panel" id="infoPanel">
+        <div id="infoContent"></div>
+      </section>
+    </div>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <main class="main-scroll">
+      <div id="viewContainer"></div>
+    </main>
+
+    <!-- НИЖНЯЯ НАВИГАЦИЯ -->
+    <nav class="bottom-bar">
+      <button class="bottom-btn nav-btn" data-view="today">Сегодня</button>
+      <button class="bottom-btn nav-btn" data-view="paths">Направления</button>
+      <button class="bottom-btn nav-btn" data-view="stats">Статистика</button>
+      <button class="bottom-btn nav-focus" id="focusBtn">Фокус: OFF</button>
+    </nav>
+  </div>
+
   <script src="app.js" defer></script>
 </body>
 </html>
