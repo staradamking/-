@@ -1,266 +1,217 @@
-const STORAGE_KEY = "staradam_dev_hq_v1";
+// STARADAM DEV HQ – логика приложения
+(() => {
+  const STORAGE_KEY = "staradam_devhq_tasks_v1";
+  const FOCUS_KEY = "staradam_devhq_focus_v1";
 
-const tracks = [
-  {
-    id: "htmlcss",
-    title: "HTML & CSS",
-    modules: [
-      "Базовые теги HTML и структура страницы",
-      "Блоки, секции, шапка, футер",
-      "Классы и id, семантика",
-      "Flex и Grid для раскладки",
-      "Цвета, градиенты, шрифты",
-      "Адаптив под телефон"
-    ]
-  },
-  {
-    id: "jsbasic",
-    title: "JavaScript База",
-    modules: [
-      "Переменные, типы, массивы, объекты",
-      "Функции и стрелочные функции",
-      "Циклы, forEach, map",
-      "Работа с датами (Date)",
-      "События: click, input, change",
-      "Работа с DOM (createElement, innerHTML)"
-    ]
-  },
-  {
-    id: "jsapp",
-    title: "JavaScript Приложения",
-    modules: [
-      "Структура приложения: state, события",
-      "localStorage: сохраняем состояние",
-      "Разделение кода на функции",
-      "Отрисовка списков на основе данных",
-      "Обработка ошибок в консоли",
-      "Рефакторинг и чистый код"
-    ]
-  },
-  {
-    id: "git",
-    title: "Git & GitHub",
-    modules: [
-      "Что такое репозиторий",
-      "Коммиты и история изменений",
-      "Ветки и слияния (branch, merge)",
-      "GitHub: пуш, пулл, форки",
-      "GitHub Pages: деплой фронтенда",
-      "Рабочий процесс: правка → commit → deploy"
-    ]
-  },
-  {
-    id: "advanced",
-    title: "Advanced / Будущее",
-    modules: [
-      "Обзор React и компонентов",
-      "Основы TypeScript",
-      "Простая архитектура SPA",
-      "PWA: офлайн и иконка приложения",
-      "UI/UX основы: как делать удобный интерфейс",
-      "Собственный большой проект (StarAdam Suite)"
-    ]
-  }
-];
+  // Все чекбоксы задач на странице
+  const checkboxes = Array.from(
+    document.querySelectorAll('input[type="checkbox"]')
+  );
 
-let progress = loadProgress();
+  // Нижние кнопки (в порядке: Сегодня, Направления, Статистика, Фокус)
+  const bottomButtons = Array.from(
+    document.querySelectorAll(".bottom-btn")
+  );
 
-document.addEventListener("DOMContentLoaded", () => {
-  const menuBtn = document.getElementById("menuBtn");
-  const infoPanel = document.getElementById("infoPanel");
-  const todayStatus = document.getElementById("todayStatus");
-  const statsPanel = document.getElementById("statsPanel");
-  const container = document.getElementById("tracksContainer");
+  const btnToday   = bottomButtons[0] || null;
+  const btnTracks  = bottomButtons[1] || null;
+  const btnStats   = bottomButtons[2] || null;
+  const btnFocus   = bottomButtons[3] || null;
 
-  const btnToday = document.getElementById("btnToday");
-  const btnTracks = document.getElementById("btnTracks");
-  const btnStats = document.getElementById("btnStats");
-  const btnFocus = document.getElementById("btnFocus");
-  const focusMusic = document.getElementById("focusMusic");
+  // Элемент для общей статистики (если есть)
+  const overallProgressEl =
+    document.querySelector("[data-overall-progress]") ||
+    document.getElementById("overall-progress");
 
-  renderTracks(container);
-  updateStats(statsPanel);
-  updateToday(todayStatus);
+  // ---------- Работа с задачами ----------
 
-  // Кнопка-меню (звезда) — сворачивает/разворачивает инфопанель
-  menuBtn.addEventListener("click", () => {
-    const collapsed = infoPanel.classList.toggle("collapsed");
-    menuBtn.classList.toggle("open", !collapsed);
-  });
-
-  // Нижняя панель
-  btnToday.addEventListener("click", () => {
-    scrollToTop();
-    setActiveBottom(btnToday);
-  });
-
-  btnTracks.addEventListener("click", () => {
-    scrollToTop();
-    setActiveBottom(btnTracks);
-  });
-
-  btnStats.addEventListener("click", () => {
-    scrollToTop();
-    pulseElement(statsPanel);
-    setActiveBottom(btnStats);
-  });
-
-  let focusOn = false;
-  btnFocus.addEventListener("click", () => {
-    if (!focusOn) {
-      focusMusic.volume = 0.25;
-      focusMusic.play().catch(() => {});
-      focusOn = true;
-      btnFocus.textContent = "Фокус: ON";
-    } else {
-      focusMusic.pause();
-      focusOn = false;
-      btnFocus.textContent = "Фокус";
+  // Присваиваем каждому чекбоксу стабильный id
+  checkboxes.forEach((cb, index) => {
+    if (!cb.dataset.taskId) {
+      cb.dataset.taskId = `task_${index}`;
     }
-    setActiveBottom(btnFocus);
   });
-});
 
-// Рендер направлений и модулей
-function renderTracks(container) {
-  container.innerHTML = "";
-  tracks.forEach(track => {
-    const card = document.createElement("section");
-    card.className = "track-card";
+  function loadTasksState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
 
-    const header = document.createElement("div");
-    header.className = "track-header";
-
-    const titleEl = document.createElement("div");
-    titleEl.className = "track-title";
-    titleEl.textContent = track.title;
-
-    const progressEl = document.createElement("div");
-    progressEl.className = "track-progress";
-
-    const total = track.modules.length;
-    const done = countDoneInTrack(track.id, total);
-    progressEl.textContent = `${done}/${total}`;
-
-    header.appendChild(titleEl);
-    header.appendChild(progressEl);
-
-    const list = document.createElement("ul");
-    list.className = "module-list";
-
-    track.modules.forEach((m, idx) => {
-      const item = document.createElement("li");
-      item.className = "module-item";
-
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = !!progress[modKey(track.id, idx)];
-
-      checkbox.addEventListener("change", () => {
-        progress[modKey(track.id, idx)] = checkbox.checked;
-        saveProgress();
-        // обновить прогресс по этому треку
-        const newDone = countDoneInTrack(track.id, total);
-        progressEl.textContent = `${newDone}/${total}`;
-        // обновить общую статистику
-        const statsPanel = document.getElementById("statsPanel");
-        updateStats(statsPanel);
+      const saved = JSON.parse(raw);
+      checkboxes.forEach((cb) => {
+        const id = cb.dataset.taskId;
+        if (id in saved) {
+          cb.checked = !!saved[id];
+        }
       });
+    } catch (e) {
+      console.warn("Не удалось загрузить состояние задач", e);
+    }
+  }
 
-      const label = document.createElement("div");
-      label.className = "module-label";
-      label.textContent = m;
+  function saveTasksState() {
+    try {
+      const state = {};
+      checkboxes.forEach((cb) => {
+        const id = cb.dataset.taskId;
+        state[id] = cb.checked;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn("Не удалось сохранить состояние задач", e);
+    }
+  }
 
-      item.appendChild(checkbox);
-      item.appendChild(label);
-      list.appendChild(item);
+  function calcModules() {
+    // Группируем задачи по «блокам» (по ближайшему секшену/карточке)
+    const modules = [];
+
+    checkboxes.forEach((cb) => {
+      const container =
+        cb.closest("section") ||
+        cb.closest(".module-card") ||
+        cb.closest(".dev-block") ||
+        cb.closest(".block") ||
+        document.body;
+
+      let module = modules.find((m) => m.el === container);
+      if (!module) {
+        const titleEl =
+          container.querySelector("h2, .block-title, .title") || null;
+        const title = titleEl
+          ? titleEl.textContent.trim()
+          : "Без названия";
+
+        module = {
+          el: container,
+          title,
+          total: 0,
+          done: 0,
+        };
+        modules.push(module);
+      }
+
+      module.total += 1;
+      if (cb.checked) module.done += 1;
     });
 
-    card.appendChild(header);
-    card.appendChild(list);
-    container.appendChild(card);
-  });
-}
-
-// Ключ модуля в хранилище
-function modKey(trackId, moduleIndex) {
-  return `${trackId}_${moduleIndex}`;
-}
-
-// Загрузка прогресса
-function loadProgress() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw);
-  } catch (_) {
-    return {};
+    return modules;
   }
-}
 
-function saveProgress() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-  } catch (_) {}
-}
+  function updateOverallProgress() {
+    const modules = calcModules();
+    let total = 0;
+    let done = 0;
 
-// Подсчёт выполненных модулей по треку
-function countDoneInTrack(trackId, totalModules) {
-  let count = 0;
-  for (let i = 0; i < totalModules; i++) {
-    if (progress[modKey(trackId, i)]) count++;
-  }
-  return count;
-}
+    modules.forEach((m) => {
+      total += m.total;
+      done += m.done;
+    });
 
-// Общая статистика
-function updateStats(el) {
-  let totalModules = 0;
-  let completed = 0;
-  tracks.forEach(track => {
-    totalModules += track.modules.length;
-    for (let i = 0; i < track.modules.length; i++) {
-      if (progress[modKey(track.id, i)]) completed++;
+    if (overallProgressEl && total > 0) {
+      const percent = Math.round((done / total) * 100);
+      overallProgressEl.textContent = `${done} из ${total} (${percent}%)`;
     }
-  });
+  }
 
-  const percent = totalModules === 0 ? 0 : Math.round((completed * 100) / totalModules);
+  // ---------- Режим фокуса ----------
 
-  el.innerHTML = `
-    Всего модулей: <b>${completed}</b> из <b>${totalModules}</b> (${percent}%)<br>
-    Цель: закрыть хотя бы 1 модуль в день, без пропусков.
-  `;
-}
+  function applyFocusFromStorage() {
+    const val = localStorage.getItem(FOCUS_KEY);
+    const on = val === "1";
+    document.body.classList.toggle("focus-mode", on);
+    if (btnFocus) {
+      btnFocus.textContent = on ? "Фокус: ON" : "Фокус: OFF";
+    }
+  }
 
-// Инфо на сегодня
-function updateToday(el) {
-  const today = new Date();
-  const options = { day: "numeric", month: "long", year: "numeric" };
-  const dateStr = today.toLocaleDateString("ru-RU", options);
+  function toggleFocus() {
+    const on = !document.body.classList.contains("focus-mode");
+    document.body.classList.toggle("focus-mode", on);
+    localStorage.setItem(FOCUS_KEY, on ? "1" : "0");
+    if (btnFocus) {
+      btnFocus.textContent = on ? "Фокус: ON" : "Фокус: OFF";
+    }
+  }
 
-  el.innerHTML = `
-    Сегодня: <b>${dateStr}</b><br>
-    Задача дня: выбери 1–2 модуля и доведи их до конца.
-  `;
-}
+  // ---------- Нижние кнопки ----------
 
-// Вспомогательные эффекты
+  function scrollToToday() {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
 
-function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
+  function showTracks() {
+    const modules = calcModules();
+    if (!modules.length) {
+      alert("Пока не нашёл ни одного блока с заданиями.");
+      return;
+    }
 
-function setActiveBottom(btn) {
-  document.querySelectorAll(".bottom-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-}
+    const lines = modules.map((m) => {
+      if (!m.total) return `${m.title}: 0 задач`;
+      const percent = Math.round((m.done / m.total) * 100);
+      return `${m.title}: ${m.done} из ${m.total} (${percent}%)`;
+    });
 
-function pulseElement(el) {
-  if (!el) return;
-  el.style.transition = "background .25s ease";
-  const oldBg = el.style.background;
-  el.style.background = "rgba(0,255,102,0.15)";
-  setTimeout(() => {
-    el.style.background = oldBg;
-  }, 300);
-}
+    alert("Направления:\n\n" + lines.join("\n"));
+  }
+
+  function showStats() {
+    const modules = calcModules();
+    let total = 0;
+    let done = 0;
+
+    modules.forEach((m) => {
+      total += m.total;
+      done += m.done;
+    });
+
+    if (!total) {
+      alert("Ещё нет ни одной задачи.");
+      return;
+    }
+
+    const percent = Math.round((done / total) * 100);
+
+    alert(
+      `Общая статистика:\n\nВыполнено: ${done} из ${total} задач (${percent}%)`
+    );
+  }
+
+  // ---------- Инициализация ----------
+
+  function init() {
+    if (!checkboxes.length) return;
+
+    loadTasksState();
+    updateOverallProgress();
+    applyFocusFromStorage();
+
+    // Сохранение задач
+    checkboxes.forEach((cb) => {
+      cb.addEventListener("change", () => {
+        saveTasksState();
+        updateOverallProgress();
+      });
+    });
+
+    // Кнопки
+    if (btnToday) {
+      btnToday.addEventListener("click", scrollToToday);
+    }
+    if (btnTracks) {
+      btnTracks.addEventListener("click", showTracks);
+    }
+    if (btnStats) {
+      btnStats.addEventListener("click", showStats);
+    }
+    if (btnFocus) {
+      btnFocus.addEventListener("click", toggleFocus);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
