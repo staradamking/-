@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>StarAdam Dev HQ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div class="top-sticky">
+      <header class="app-header">
+        <div class="app-title">STARADAM DEV HQ</div>
+        <button id="menuBtn" class="menu-btn star-btn">★</button>
+      </header>
+
+      <section id="infoPanel" class="info-panel">
+        <div id="todayStatus" class="today-status"></div>
+        <div id="statsPanel" class="stats-panel"></div>
+      </section>
+    </div>
+
+    <main id="tracksContainer" class="tracks-container"></main>
+
+    <footer class="bottom-bar">
+      <button id="btnToday" class="bottom-btn">Сегодня</button>
+      <button id="btnTracks" class="bottom-btn">Направления</button>
+      <button id="btnStats" class="bottom-btn">Статистика</button>
+      <button id="btnFocus" class="bottom-btn">Фокус</button>
+    </footer>
+  </div>
+
+  <audio id="focusMusic" loop>
+    <source src="cosmos.mp3" type="audio/mpeg">
+  </audio>
+
+  <script src="app.js"></script>
+</body>
+</html>
